@@ -83,7 +83,8 @@ public static class ObjectEvents {
         )
         .AddMethods(typeof(ISidescreenButtonControl), nameof(ISidescreenButtonControl.OnSidescreenButtonPressed))
         .AddMethods(typeof(IUserControlledCapacity), nameof(IUserControlledCapacity.UserMaxCapacity))
-        .AddMethods(typeof(Assignable), nameof(Assignable.Assign), nameof(Assignable.Unassign))
+        .AddMethods(typeof(Assignable), nameof(Assignable.Unassign))
+        .AddMethod(typeof(Assignable), nameof(Assignable.Assign), typeof(IAssignableIdentity)/*, typeof(AssignableSlotInstance)*/)
         .AddMethods(
             typeof(AccessControl),
             nameof(AccessControl.SetPermission),

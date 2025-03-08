@@ -20,7 +20,7 @@ public class MoveToSafetyChoreSynchronizer(IMultiplayerServer server) : StateMac
 
     protected override StateMachineConfigurer[] Inline() => [
         // Disable IdleChore recurring creation
-        new StateMachineConfigurerDsl<SafeCellMonitor, SafeCellMonitor.Instance>(root => {
+        new StateMachineConfigurerDsl<SafeCellMonitor, SafeCellMonitor.Instance, IStateMachineTarget, SafeCellMonitor.Def>(root => {
             root.PreConfigure(MultiplayerMode.Client, pre => {
                 pre.Suppress(() => pre.StateMachine.danger.ToggleChore(null, null));
             });
@@ -56,21 +56,21 @@ public class MoveToSafetyChoreSynchronizer(IMultiplayerServer server) : StateMac
         var sm = configurer.StateMachine;
         sm.move.Enter(smi => {
             server.Send(
-                new MoveObjectToCell(new ChoreStateMachineReference(smi.master), smi.targetCell, movingStateInfo),
+                new MoveObjectToCell(new ChoreStateMachineReference<MoveToSafetyChore.StatesInstance>(smi.master), smi.targetCell, movingStateInfo),
                 MultiplayerCommandOptions.SkipHost
             );
         });
 
         sm.move.Update((smi, _) => {
             server.Send(
-                new MoveObjectToCell(new ChoreStateMachineReference(smi.master), smi.targetCell, movingStateInfo),
+                new MoveObjectToCell(new ChoreStateMachineReference<MoveToSafetyChore.StatesInstance>(smi.master), smi.targetCell, movingStateInfo),
                 MultiplayerCommandOptions.SkipHost
             );
         });
 
         sm.move.Exit(smi => {
             server.Send(
-                new GoToState(new ChoreStateMachineReference(smi.master), (StateMachine.BaseState?) null),
+                new GoToState(new ChoreStateMachineReference<MoveToSafetyChore.StatesInstance>(smi.master), (StateMachine.BaseState?) null),
                 MultiplayerCommandOptions.SkipHost
             );
             server.Send(

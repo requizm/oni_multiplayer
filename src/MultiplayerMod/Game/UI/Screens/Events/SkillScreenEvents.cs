@@ -21,7 +21,7 @@ public static class SkillScreenEvents {
             __instance.GetMinionIdentity(__instance.currentlySelectedMinion, out var minionIdentity, out _);
             SetHat?.Invoke(
                 minionIdentity,
-                (skill as SkillListable)?.skillHat
+                (skill as StoredMinionIdentity)?.currentHat
             );
         }
 
@@ -35,9 +35,9 @@ public static class SkillScreenEvents {
         [HarmonyPatch(nameof(SkillMinionWidget.OnHatDropEntryClick))]
         [RequireExecutionLevel(ExecutionLevel.Game)]
         // ReSharper disable once UnusedMember.Local
-        private static void OnHatDropEntryClick(SkillMinionWidget __instance, IListableOption skill) {
+        private static void OnHatDropEntryClick(SkillMinionWidget __instance, IListableOption data) {
             __instance.skillsScreen.GetMinionIdentity(__instance.assignableIdentity, out var minionIdentity, out _);
-            SetHat?.Invoke(minionIdentity, (skill as SkillListable)?.skillHat);
+            SetHat?.Invoke(minionIdentity, (data as StoredMinionIdentity)?.currentHat);
         }
 
     }

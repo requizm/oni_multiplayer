@@ -13,6 +13,7 @@ using MultiplayerMod.Test.Environment.Patches;
 using MultiplayerMod.Test.GameRuntime;
 using MultiplayerMod.Test.GameRuntime.Patches;
 using NUnit.Framework;
+using TUNING;
 using UnityEngine;
 
 #pragma warning disable CS8974 // Converting method group to non-delegate type
@@ -121,7 +122,7 @@ public class AbstractChoreTest : PlayableGameTest {
         targetGameObject.AddComponent<Facing>();
         targetGameObject.AddComponent<KSelectable>();
         targetGameObject.AddComponent<ConsumableConsumer>().forbiddenTagSet = new HashSet<Tag>();
-        targetGameObject.AddComponent<Worker>();
+        targetGameObject.AddComponent<StandardWorker>();
 
         Assets.PrefabsByTag[(Tag) TargetLocator.ID] = targetGameObject.GetComponent<KPrefabID>();
         Assets.PrefabsByTag[(Tag) MinionAssignablesProxyConfig.ID] =
@@ -131,7 +132,7 @@ public class AbstractChoreTest : PlayableGameTest {
         locatorGameObject.AddComponent<KPrefabID>();
         Assets.PrefabsByTag[(Tag) ApproachableLocator.ID] = locatorGameObject.GetComponent<KPrefabID>();
         var navigator = targetGameObject.AddComponent<Navigator>();
-        navigator.NavGridName = MinionConfig.MINION_NAV_GRID_NAME;
+        navigator.NavGridName = DUPLICANTSTATS.STANDARD.BaseStats.NAV_GRID_NAME;
         navigator.CurrentNavType = NavType.Floor;
         navigator.Awake();
         navigator.Start();

@@ -1,6 +1,7 @@
 using System;
 using MultiplayerMod.Core.Dependency;
 using MultiplayerMod.ModRuntime;
+using MultiplayerMod.Multiplayer.States;
 
 namespace MultiplayerMod.Multiplayer.Objects.Reference;
 
@@ -17,16 +18,19 @@ public class StateMachineReference(
 
 }
 
-[Serializable]
 [DependenciesStaticTarget]
-public class ChoreStateMachineReference(Chore chore) : TypedReference<StateMachine.Instance> {
+public static class ChoreStateMachineReferenceHelper {
+    [InjectDependency] public static MultiplayerObjects Objects { get; set; } = null!;
+}
 
-    [InjectDependency]
-    private static MultiplayerObjects objects = null!;
+[Serializable]
+public class ChoreStateMachineReference<T>(Chore<T> chore)
+    : TypedReference<StateMachine.Instance> where T : StateMachine.Instance {
 
-    private MultiplayerId id = objects.Get(chore)!.Id;
+    private MultiplayerId id = ChoreStateMachineReferenceHelper.Objects.Get(chore)!.Id;
 
-    public override StateMachine.Instance Resolve() => objects.Get<Chore>(id)!.GetSMI();
+    public override StateMachine.Instance Resolve() => Runtime.Instance.Dependencies.Get<StatesManager>()
+        .GetSmi(ChoreStateMachineReferenceHelper.Objects.Get<Chore<StateMachine.Instance>>(id)!);
 
     public StateMachine.Instance Get() => Resolve();
 

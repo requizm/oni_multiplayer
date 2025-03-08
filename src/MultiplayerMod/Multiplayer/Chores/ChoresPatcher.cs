@@ -17,6 +17,7 @@ using MultiplayerMod.Multiplayer.CoreOperations;
 using MultiplayerMod.Multiplayer.Objects;
 using MultiplayerMod.Multiplayer.Objects.Extensions;
 using MultiplayerMod.Multiplayer.StateMachines;
+using MultiplayerMod.Multiplayer.States;
 
 namespace MultiplayerMod.Multiplayer.Chores;
 
@@ -61,11 +62,11 @@ public class ChoresPatcher {
 
         log.Info($"{ChoresMultiplayerConfiguration.Configuration.Length} chore types patched");
 
-        harmony.CreateProcessor(typeof(Chore).GetConstructors()[0])
+        harmony.CreateProcessor(typeof(Chore<StateMachine.Instance>).GetConstructors()[0])
             .AddPostfix(SymbolExtensions.GetMethodInfo(() => AddMultiplayerPreconditions(null!)))
             .Patch();
 
-        harmony.CreateProcessor(typeof(Chore).GetMethod(nameof(Chore.Cleanup)))
+        harmony.CreateProcessor(typeof(Chore<StateMachine.Instance>).GetMethod(nameof(Chore<StateMachine.Instance>.Cleanup)))
             .AddPostfix(SymbolExtensions.GetMethodInfo(() => ChoreCleanup(null!)))
             .Patch();
     }
@@ -80,7 +81,7 @@ public class ChoresPatcher {
     public bool Supported(Chore chore) => supportedTypes.Contains(chore.GetType());
 
     [RequireExecutionLevel(ExecutionLevel.Multiplayer)]
-    private static void ChoreConstructorPostfix(Chore __instance, object[] __args) {
+    private static void ChoreConstructorPostfix(Chore<StateMachine.Instance> __instance, object[] __args) {
         var multiplayer = Dependencies.Get<MultiplayerGame>();
         switch (multiplayer.Mode) {
             case MultiplayerMode.Host:
@@ -99,8 +100,9 @@ public class ChoresPatcher {
     }
 
     [RequireExecutionLevel(ExecutionLevel.Multiplayer)]
-    private static void OnChoreCreated(Chore chore, object[] arguments) {
-        var serializable = chore.GetSMI().stateMachine.serializable;
+    private static void OnChoreCreated(Chore<StateMachine.Instance> chore, object[] arguments) {
+        var statesManager = Runtime.Instance.Dependencies.Get<StatesManager>();
+        var serializable = statesManager.GetSmi(chore).stateMachine.serializable;
         var id = chore.Register(persistent: serializable == StateMachine.SerializeType.Never);
         events.Dispatch(new ChoreCreatedEvent(chore, id, chore.GetType(), arguments));
     }

@@ -24,6 +24,7 @@ using MultiplayerMod.Test.Environment.Patches;
 using MultiplayerMod.Test.GameRuntime;
 using MultiplayerMod.Test.GameRuntime.Patches;
 using NUnit.Framework;
+using TUNING;
 using UnityEngine;
 using Attribute = System.Attribute;
 
@@ -155,7 +156,7 @@ public abstract class ChoreTest : PlayableGameTest {
         targetGameObject.AddComponent<Facing>();
         targetGameObject.AddComponent<KSelectable>();
         targetGameObject.AddComponent<ConsumableConsumer>().forbiddenTagSet = [];
-        targetGameObject.AddComponent<Worker>();
+        targetGameObject.AddComponent<StandardWorker>();
 
         Assets.PrefabsByTag[(Tag) TargetLocator.ID] = targetGameObject.GetComponent<KPrefabID>();
         Assets.PrefabsByTag[(Tag) MinionAssignablesProxyConfig.ID] =
@@ -165,7 +166,7 @@ public abstract class ChoreTest : PlayableGameTest {
         locatorGameObject.AddComponent<KPrefabID>();
         Assets.PrefabsByTag[(Tag) ApproachableLocator.ID] = locatorGameObject.GetComponent<KPrefabID>();
         var navigator = targetGameObject.AddComponent<Navigator>();
-        navigator.NavGridName = MinionConfig.MINION_NAV_GRID_NAME;
+        navigator.NavGridName = DUPLICANTSTATS.STANDARD.BaseStats.NAV_GRID_NAME;
         navigator.CurrentNavType = NavType.Floor;
         navigator.Awake();
         navigator.Start();

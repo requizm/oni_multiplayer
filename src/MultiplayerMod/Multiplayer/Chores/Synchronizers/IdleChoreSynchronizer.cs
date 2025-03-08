@@ -59,14 +59,14 @@ public class IdleChoreSynchronizer(
         sm.idle.move.Enter(smi => {
             var cell = smi.GetIdleCell();
             server.Send(
-                new MoveObjectToCell(new ChoreStateMachineReference(smi.master), cell, sm.idle.move),
+                new MoveObjectToCell(new ChoreStateMachineReference<IdleChore.StatesInstance>(smi.master), cell, sm.idle.move),
                 MultiplayerCommandOptions.SkipHost
             );
         });
 
         sm.idle.move.Exit(smi => {
             server.Send(
-                new GoToState(new ChoreStateMachineReference(smi.master), sm.idle),
+                new GoToState(new ChoreStateMachineReference<IdleChore.StatesInstance>(smi.master), sm.idle),
                 MultiplayerCommandOptions.SkipHost
             );
             server.Send(

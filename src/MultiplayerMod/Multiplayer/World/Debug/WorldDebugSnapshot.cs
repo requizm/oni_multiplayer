@@ -57,13 +57,13 @@ public record WorldDebugSnapshot(
             choreProviders.Select(
                 choreProvider => choreProvider.choreWorldMap.ToDictionary(
                     pair => pair.Key,
-                    pair => pair.Value.Select(Hash).ToArray()
+                    pair => pair.Value.Select(c => Hash((Chore<StateMachine.Instance>) c)).ToArray()
                 )
             ).ToArray()
         );
     }
 
-    private static int Hash(Chore chore) {
+    private static int Hash(Chore<StateMachine.Instance> chore) {
         var hash = 0;
         hash = CombineHashCodes(hash, chore.choreType.Name.GetHashCode());
         hash = CombineHashCodes(hash, chore.target.name.GetHashCode());
