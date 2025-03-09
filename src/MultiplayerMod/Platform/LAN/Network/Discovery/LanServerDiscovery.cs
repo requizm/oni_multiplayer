@@ -46,7 +46,7 @@ public class LanServerDiscovery {
         discoveryClient = new NetManager(listener);
         discoveryClient.UnconnectedMessagesEnabled = true;
         discoveryClient.BroadcastReceiveEnabled = true;
-        discoveryClient.Start();
+        discoveryClient.Start(0); // Use any available port for the client
         lastDiscoveryTime = 0;
     }
 
@@ -61,7 +61,7 @@ public class LanServerDiscovery {
         discoveryClient = new NetManager(listener);
         discoveryClient.UnconnectedMessagesEnabled = true;
         discoveryClient.BroadcastReceiveEnabled = true;
-        discoveryClient.Start();
+        discoveryClient.Start(DefaultDiscoveryPort); // Explicitly listen on discovery port
     }
 
     public void StopDiscovery() {
