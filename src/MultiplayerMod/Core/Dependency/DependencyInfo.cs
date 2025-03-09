@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace MultiplayerMod.Core.Dependency;
 
@@ -7,6 +8,7 @@ public class DependencyInfo {
     public string Name { get; }
     public Type Type { get; }
     public bool Lazy { get; }
+    public int Priority { get; }
 
     public DependencyInfo(string name, Type type, bool lazy) {
         if (!type.IsClass)
@@ -15,6 +17,9 @@ public class DependencyInfo {
         Name = name;
         Type = type;
         Lazy = lazy;
+
+        var priorityAttr = type.GetCustomAttribute<DependencyPriorityAttribute>();
+        Priority = priorityAttr?.Priority ?? 0;
     }
 
 }

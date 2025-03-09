@@ -78,12 +78,13 @@ public class DependencyContainer : IDependencyContainer, IDependencyInjector {
             throw new MissingDependencyException(targetType);
         }
 
-        if (!resolveMultiple && dependencyInfos.Count > 1)
-            throw new AmbiguousDependencyException(targetType, dependencyInfos);
+        if (!resolveMultiple) {
+            // Sort by priority (highest first) and take the highest priority implementation
+            var sortedDependencies = dependencyInfos.OrderByDescending(d => d.Priority).ToList();
+            return GetInstance(sortedDependencies[0]);
+        }
 
-        return resolveMultiple
-            ? dependencyInfos.Select(GetInstance).ToTypedList(targetType)
-            : GetInstance(dependencyInfos[0]);
+        return dependencyInfos.Select(GetInstance).ToTypedList(targetType);
     }
 
     public void PreInstantiate() => RegisteredDependencies.Where(it => !it.Lazy).ForEach(it => GetInstance(it));
@@ -102,35 +103,40 @@ public class DependencyContainer : IDependencyContainer, IDependencyInjector {
 
     private void InjectMembers(Type type, BindingFlags bindingFlags, object? instance) => type.GetMembers(bindingFlags)
         .Where(member => member.GetCustomAttribute<InjectDependencyAttribute>() != null)
-        .ForEach(member => {
-            try {
-                switch (member) {
-                    case FieldInfo field:
-                        if (field.FieldType.ContainsGenericParameters) {
-                            UnityEngine.Debug.LogError($"[MultiplayerMod] Cannot inject dependency for field {field.Name} in {type.FullName}: open generic type {field.FieldType}");
-                            log.Error(() => $"Cannot inject dependency for field {field.Name} in {type.FullName}: open generic type {field.FieldType}");
-                            return;
-                        }
-                        field.SetValue(instance, Get(field.FieldType));
-                        break;
-                    case PropertyInfo property:
-                        if (!property.CanWrite)
+        .ForEach(
+            member => {
+                try {
+                    switch (member) {
+                        case FieldInfo field:
+                            if (field.FieldType.ContainsGenericParameters) {
+                                log.Error(
+                                    () =>
+                                        $"Cannot inject dependency for field {field.Name} in {type.FullName}: open generic type {field.FieldType}"
+                                );
+                                return;
+                            }
+                            field.SetValue(instance, Get(field.FieldType));
                             break;
-                        if (property.PropertyType.ContainsGenericParameters) {
-                            UnityEngine.Debug.LogError($"[MultiplayerMod] Cannot inject dependency for property {property.Name} in {type.FullName}: open generic type {property.PropertyType}");
-                            log.Error(() => $"Cannot inject dependency for property {property.Name} in {type.FullName}: open generic type {property.PropertyType}");
-                            return;
-                        }
-                        property.SetValue(instance, Get(property.PropertyType));
-                        break;
+                        case PropertyInfo property:
+                            if (!property.CanWrite)
+                                break;
+
+                            if (property.PropertyType.ContainsGenericParameters) {
+                                log.Error(
+                                    () =>
+                                        $"Cannot inject dependency for property {property.Name} in {type.FullName}: open generic type {property.PropertyType}"
+                                );
+                                return;
+                            }
+                            property.SetValue(instance, Get(property.PropertyType));
+                            break;
+                    }
+                } catch (Exception ex) {
+                    log.Error(() => $"Error injecting dependency for {member.Name} in {type.FullName}: {ex.Message}");
+                    throw;
                 }
             }
-            catch (Exception ex) {
-                UnityEngine.Debug.LogError($"[MultiplayerMod] Error injecting dependency for {member.Name} in {type.FullName}: {ex.Message}");
-                log.Error(() => $"Error injecting dependency for {member.Name} in {type.FullName}: {ex.Message}");
-                throw;
-            }
-        });
+        );
 
     private object GetInstance(DependencyInfo info) {
         if (instances.TryGetValue(info.Name, out var instance))
